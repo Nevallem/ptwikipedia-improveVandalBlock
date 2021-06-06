@@ -1,1 +1,1 @@
-# ptwikipedia-improveVandalBlock
+# ptwikipedia-instablockVandal
