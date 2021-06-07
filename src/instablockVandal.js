@@ -3,7 +3,7 @@
  *
  * @author [[w:pt:User:!Silent]]
  * @date 13/feb/2017
- * @update 06/jun/2021
+ * @update 07/jun/2021
  */
 /* jshint laxbreak: true, expr: true, esversion: 6 */
 /* global $, mw */
@@ -18,14 +18,17 @@ mw.messages.set( {
 	'ibv-buttonName-0': 'tentativa',
 	'ibv-buttonName-1': 'vandalismo',
 	'ibv-blocking': 'Bloqueando o vândalo...',
-	'ibv-reason-0': 'Tentativa de [[WP:VAN|vandalismo]] frustrada por [[WP:FE|filtro]]',
-	'ibv-reason-1': 'Vandalismo [[Wikipédia:Vandalismo|contumaz]]',
+	'ibv-reason-0': 'tentativa de [[WP:VAN|vandalismo]] frustrada por [[WP:FE|filtro]]',
+	'ibv-reason-1': 'vandalismo [[Wikipédia:Vandalismo|contumaz]]',
+	'ibv-reason-prepend': 'Conta de [[WP:CPU|propósito único]] nocivo: ',
 	'ibv-reason-page': ' na página [[$1]]',
 	'ibv-notifying': 'Notificando o vândalo...',
 	'ibv-sectionTitle': 'Notificação de bloqueio',
 	'ibv-duration-IP': 'um dia',
 	'ibv-duration-user': 'infinito',
 	'ibv-summary': 'Notificação de bloqueio usando um [[User:!Silent/instablockVandal.js|script]]',
+	'ibv-confirmBlock': 'Você está prestes a bloquear o usuário "$1" por tempo indeterminado. Confirma o bloqueio?',
+	'ibv-alreadyBlocked': 'O usuário já está bloqueado.',
 	'ibv-success': 'O usuário "$1" foi bloqueado e notificado com sucesso.'
 } );
 
@@ -35,10 +38,12 @@ mw.messages.set( {
 class InstablockVandal {
 	constructor() {
 		this.already_blocked = false;
-		this.username_target = '';
 		this.placement_type = 0;
+		this.username_target = '';
+		this.is_IPAddress = '';
 		this.is_abuselog_details = !!$( '.mw-abuselog-details' ).length;
 		this.is_page_diff = !!mw.util.getParamValue( 'diff' );
+		this.is_already_blocked = !!$( '.mw-contributions-blocked-notice' ).length;
 	}
 
 	/**
@@ -53,7 +58,7 @@ class InstablockVandal {
 	}
 
 	/**
-	 * Add the new buttons
+	 * Attach the new buttons
 	 */
 	attach_buttons() {
 		let $placement;
@@ -64,19 +69,32 @@ class InstablockVandal {
 			|| window.decodeURI( mw.util.getUrl().split( '/' )[ 3 ]
 			|| mw.util.getParamValue( 'target' ) );
 
+		ibv.is_IPAddress = mw.util.isIPAddress( ibv.username_target );
+
 		if ( ibv.is_abuselog_details )
 			$placement = $( '.mw-usertoollinks a:last' );
 		else if ( !ibv.placement_type )
 			$placement = $( '#mw-diff-ntitle2 .mw-usertoollinks a:last' );
 		else
-			$placement = $( '#contentSub a' ).eq( mw.util.isIPAddress( ibv.username_target ) ? 1 : 2 );
+			$placement = $( '#contentSub a' ).eq( ibv.is_IPAddress ? 1 : 2 );
 
 		$placement.after(
 			` [<a class="ibv-instablock" style="cursor: pointer;" type="0">${ ibv.message( 'ibv-buttonName-0' ) }</a> | `
 			+ `<a class="ibv-instablock" style="cursor: pointer;" type="1"> ${ ibv.message( 'ibv-buttonName-1' ) }</a>]`
 		);
 
-		$( '.ibv-instablock' ).click( ibv.instablock );
+		$( '.ibv-instablock' ).click( function() {
+			if ( ibv.is_already_blocked ) {
+				window.alert( ibv.message( 'ibv-alreadyBlocked' ) );
+				return;
+			}
+
+
+			if ( ibv.is_IPAddress )
+				ibv.instablock.call( this );
+			else if ( window.confirm( ibv.message( 'ibv-confirmBlock', ibv.username_target ) ) )
+				ibv.instablock.call( this );
+		} );
 	}
 
 	/**
@@ -95,7 +113,7 @@ class InstablockVandal {
 		if ( ibv.is_page_diff )
 			vandalismPage =	mw.config.get( 'wgPageName' ).replace( /_/g, ' ' );
 		else if ( ibv.is_abuselog_details )
-			vandalismPage = $( '#mw-content-text' ).find( 'a' ).eq( 7 ).html();
+			vandalismPage = $( '#mw-content-text' ).find( 'a' ).eq( ibv.is_IPAddress ? 6 : 7 ).html();
 		else
 			vandalismPage = null;
 
@@ -103,7 +121,7 @@ class InstablockVandal {
 			action: 'block',
 			user: ibv.username_target,
 			token: mw.user.tokens.get( 'csrfToken' ),
-			expiry: ( mw.util.isIPAddress( ibv.username_target ) ? '1 day' : 'infinity' ),
+			expiry: ( ibv.is_IPAddress ? '1 day' : 'infinity' ),
 			reason: ibv.message( `ibv-reason-${ blockType }` ),
 			autoblock: 1,
 			noemail: $.inArray( 'rollbacker', mw.config.get( 'wgUserGroups' ) ) === -1 ? 1 : undefined,
@@ -116,11 +134,14 @@ class InstablockVandal {
 				section: 'new',
 				watchlist: 'preferences',
 				sectiontitle: ibv.message( 'ibv-sectionTitle' ),
-				text: `\{\{subst:Bloqueado|1=${ ibv.message( `ibv-duration-${ mw.util.isIPAddress( ibv.username_target ) ? 'IP' : 'user' }` ) }|2=${ ibv.message( `ibv-reason-${ blockType }` ) + (
-					vandalismPage
-						? ibv.message( 'ibv-reason-page', vandalismPage )
-						: ''
-					) }.\}\} \~\~\~\~`,
+				text: `\{\{subst:Bloqueado|1=${ ibv.message( `ibv-duration-${ ibv.is_IPAddress ? 'IP' : 'user' }` ) }|2=${
+					( !ibv.is_IPAddress ? ibv.message( 'ibv-reason-prepend' ) : '' )
+					+ ibv.message( `ibv-reason-${ blockType }` ) + (
+						vandalismPage
+							? ibv.message( 'ibv-reason-page', vandalismPage )
+							: ''
+						)
+					}.\}\} \~\~\~\~`,
 				summary: ibv.message( 'ibv-summary' ),
 				done: function() {
 					mw.notify( ibv.message( 'ibv-success', ibv.username_target ) );
