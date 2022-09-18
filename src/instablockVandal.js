@@ -3,7 +3,7 @@
  *
  * @author [[w:pt:User:!Silent]]
  * @date 13/feb/2017
- * @update 07/jun/2021
+ * @update 14/sep/2022
  */
 /* jshint laxbreak: true, expr: true, esversion: 6 */
 /* global $, mw */
@@ -124,6 +124,7 @@ class InstablockVandal {
 			expiry: ( ibv.is_IPAddress ? '1 day' : 'infinity' ),
 			reason: ibv.message( `ibv-reason-${ blockType }` ),
 			autoblock: 1,
+			allowusertalk: 1,
 			noemail: $.inArray( 'rollbacker', mw.config.get( 'wgUserGroups' ) ) === -1 ? 1 : undefined,
 			nocreate: 1
 		} ).done( function() {
@@ -134,7 +135,7 @@ class InstablockVandal {
 				section: 'new',
 				watchlist: 'preferences',
 				sectiontitle: ibv.message( 'ibv-sectionTitle' ),
-				text: `\{\{subst:Bloqueado|1=${ ibv.message( `ibv-duration-${ ibv.is_IPAddress ? 'IP' : 'user' }` ) }|2=${
+				text: `\{\{subst:Bloqueado-disc|1=${ ibv.message( `ibv-duration-${ ibv.is_IPAddress ? 'IP' : 'user' }` ) }|2=${
 					( !ibv.is_IPAddress ? ibv.message( 'ibv-reason-prepend' ) : '' )
 					+ ibv.message( `ibv-reason-${ blockType }` ) + (
 						vandalismPage
