@@ -3,7 +3,7 @@
  *
  * @author [[w:pt:User:!Silent]]
  * @date 13/feb/2017
- * @update 13/nov/2022
+ * @update 14/nov/2022
  * @source https://github.com/Nevallem/ptwikipedia-instablockVandal
  */
 /* jshint laxbreak: true, expr: true, esversion: 6 */
@@ -19,10 +19,12 @@ mw.messages.set( {
 	'ibv-buttonName-0': 'tentativa',
 	'ibv-buttonName-1': 'vandalismo',
 	'ibv-buttonName-2': 'nome impróprio',
+	'ibv-buttonName-3': 'spam',
 	'ibv-blocking': 'Bloqueando o vândalo...',
 	'ibv-reason-0': 'tentativa de [[WP:VAN|vandalizar]] frustrada por [[WP:FE|filtro]]',
 	'ibv-reason-1': 'vandalismo [[Wikipédia:Vandalismo|contumaz]]',
 	'ibv-reason-2': 'nome [[A:CCC|impróprio de usuário]] - para contribuir, siga nossas [[Predefinição:Nome impróprio|recomendações]]',
+	'ibv-reason-3': 'propaganda ou [[WP:SPAM|spam]]',
 	'ibv-reason-prepend': 'Conta de [[WP:CPU|propósito único]] nocivo: ',
 	'ibv-reason-page': ' na página [[$1]]',
 	'ibv-notifying': 'Notificando o vândalo...',
@@ -84,7 +86,8 @@ class InstablockVandal {
 		$placement.after(
 			` [<a class="ibv-instablock" style="cursor: pointer;" type="0">${ ibv.message( 'ibv-buttonName-0' ) }</a> | `
 			+ `<a class="ibv-instablock" style="cursor: pointer;" type="1"> ${ ibv.message( 'ibv-buttonName-1' ) }</a> | `
-			+ `<a class="ibv-instablock" style="cursor: pointer;" type="2"> ${ ibv.message( 'ibv-buttonName-2' ) }</a>]`
+			+ `<a class="ibv-instablock" style="cursor: pointer;" type="2"> ${ ibv.message( 'ibv-buttonName-2' ) }</a> | `
+			+ `<a class="ibv-instablock" style="cursor: pointer;" type="3"> ${ ibv.message( 'ibv-buttonName-3' ) }</a>]`
 		);
 
 		$( '.ibv-instablock' ).click( function() {
