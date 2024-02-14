@@ -3,7 +3,7 @@
  *
  * @author [[w:pt:User:!Silent]]
  * @date 13/feb/2017
- * @update 10/dec/2022
+ * @update 14/fev/2024
  * @source https://github.com/Nevallem/ptwikipedia-instablockVandal
  */
 /* jshint laxbreak: true, expr: true, esversion: 6 */
@@ -35,7 +35,7 @@ mw.messages.set( {
 	'ibv-duration-user': 'infinito',
 	'ibv-summary': 'Notificação de bloqueio usando um [[User:!Silent/instablockVandal.js|script]]',
 	'ibv-confirmBlock': 'Você está prestes a bloquear o usuário "$1" por tempo indeterminado. Confirma o bloqueio?',
-	'ibv-alreadyBlocked': 'O usuário já está bloqueado.',
+	'ibv-alreadyBlocked': 'O usuário já se encontra bloqueado.',
 	'ibv-success': 'O usuário "$1" foi bloqueado e notificado com sucesso.'
 } );
 
@@ -67,15 +67,13 @@ class InstablockVandal {
 	/**
 	 * Attach the new buttons
 	 */
-	attach_buttons() {
+	attach_buttons() { 
 		let $placement;
 
 		ibv.placement_type = ibv.is_page_diff ? 0 : 1;
-		ibv.username_target = $( '#ooui-php-1' ).val()
-			|| $( '.mw-userlink bdi' ).eq( ibv.placement_type ? 0 : 1 ).text()
-			|| window.decodeURI( mw.util.getUrl().split( '/' )[ 3 ]
-			|| mw.util.getParamValue( 'target' ) );
-
+		ibv.username_target = ( mw.config.get( 'wgCanonicalSpecialPageName' ) === 'Contributions' && window.decodeURI( mw.util.getUrl() ).split( '/' )[ 3 ] )
+			|| $( '.mw-userlink bdi' ).eq( 1 ).text()
+			|| mw.util.getParamValue( 'target' );
 		ibv.is_IPAddress = mw.util.isIPAddress( ibv.username_target );
 
 		if ( ibv.is_abuselog_details )
@@ -99,10 +97,7 @@ class InstablockVandal {
 				return;
 			}
 
-
-			if ( ibv.is_IPAddress )
-				ibv.instablock.call( this );
-			else if ( window.confirm( ibv.message( 'ibv-confirmBlock', ibv.username_target ) ) )
+			if ( window.confirm( ibv.message( 'ibv-confirmBlock', ibv.username_target ) ) )
 				ibv.instablock.call( this );
 		} );
 	}
@@ -123,7 +118,7 @@ class InstablockVandal {
 		if ( ibv.is_page_diff )
 			vandalismPage =	mw.config.get( 'wgPageName' ).replace( /_/g, ' ' );
 		else if ( ibv.is_abuselog_details )
-			vandalismPage = $( '#mw-content-text' ).find( 'a' ).eq( ibv.is_IPAddress ? 4 : 9 ).html();
+			vandalismPage = $( '#mw-content-text' ).find( 'a' ).eq( ibv.is_IPAddress ? 9 : 10 ).html();
 		else
 			vandalismPage = null;
 
